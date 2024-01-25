@@ -28,10 +28,10 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup NodeJS Versions - ${{ martix.nodejs_version }}
+      - name: Setup NodeJS Versions - ${{ matrix.nodejs_version }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ martix.nodejs_version }}
+          node-version: ${{ matrix.nodejs_version }}
 
       - name: Install Dependencies
         run: npm install
