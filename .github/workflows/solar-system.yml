@@ -47,7 +47,7 @@ jobs:
         run: npm test
 
       - name: Archive Test Result
-        # if: failure() && steps.nodejs-test.outcome == 'failure' || steps.nodejs-test.outcome == 'success'
+        ## if: failure() && steps.nodejs-test.outcome == 'failure' || steps.nodejs-test.outcome == 'success'
         # The failure() will fail to run in situations where the previous step is successful
         if: always()
         uses: actions/upload-artifact@v4
