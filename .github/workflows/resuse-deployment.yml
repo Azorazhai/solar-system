@@ -27,9 +27,13 @@ on:
         default: development
         required: true
         type: string
+    outputs:
+      APP_URL:
+        description: app url to pass to caller workflow
+        value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }}
 
 jobs:
-  resuse-deploy:
+  reuse-deploy:
     environment: 
       name: ${{ inputs.environment }}
       url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
