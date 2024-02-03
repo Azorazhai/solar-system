@@ -67,7 +67,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.nodejs_version }}-${{ matrix.operating_system }}
+          # name: test-results-${{ matrix.nodejs_version }}-${{ matrix.operating_system }}
+          name: unit-test-results
           path: test-results.xml
           retention-days: 1
 
@@ -118,6 +119,42 @@ jobs:
           name: Code-Coverage-Result
           path: coverage
           retention-days: 1
+
+  reports-s3:
+    needs: [code-coverage, unit-testing]
+    name: AWS S3 - Upload Reports
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Download Unit Testing Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-results
+
+      - name: Download Code Coverage Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Code-Coverage-Result
+
+      - name: Merge Test Files
+        run: |
+          ls -ltr
+          mkdir reports-${{ github.sha }}
+          mv cobertura-coverage.xml reports-${{ github.sha }}/
+          mv unit-test-results.xml reports-${{ github.sha }}/
+          ls -ltr reports-${{ github.sha }}/
+
+      - name: Upload to AWS S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --follow-symlinks --delete
+        env:
+          AWS_REGION: 'us-east-2'
+          AWS_S3_BUCKET: ${{ vars.AWS_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+          SOURCE_DIR: 'reports-${{ github.sha }}'
+          DEST_DIR: 'reports-${{ github.sha }}'
 
   docker:
     name: Containerization
@@ -186,7 +223,6 @@ jobs:
       mongodb-uri: ${{ vars.MONGO_URI }}
       environment: development
       k8s-manifest-dir: kubernetes/development/
-
 
   dev-integration-testing:
     if: contains(github.ref, 'feature/')
